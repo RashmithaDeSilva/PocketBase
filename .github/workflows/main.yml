@@ -23,18 +23,18 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t pk/pocketbase:${{ secrets.IMAGE_VERSION }} .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ secrets.IMAGE_VERSION }} .
 
       - name: Tag Docker image with latest tag
         run: |
-          docker tag pk/pocketbase:${{ secrets.IMAGE_VERSION }} pk/pocketbase:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ secrets.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest
 
       - name: Test Docker image
         run: |
-          docker run --rm pk/pocketbase:${{ secrets.IMAGE_VERSION }} /pb/pb-test.sh
-          docker run --rm pk/pocketbase:latest /pb/pb-test.sh
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ secrets.IMAGE_VERSION }} /pb/pb-test.sh
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest /pb/pb-test.sh
 
       - name: Push Docker images
         run: |
-          docker push pk/pocketbase:${{ secrets.IMAGE_VERSION }}
-          docker push pk/pocketbase:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ secrets.IMAGE_VERSION }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest
