@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -22,9 +22,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Tag Docker image
+      - name: Build Docker image
+        run: docker build -t pk/pocketbase:${{ secrets.IMAGE_VERSION }} .
+
+      - name: Tag Docker image with latest tag
         run: |
-          docker buildx build --tag pk/pocketbase:${{ secrets.IMAGE_VERSION }} --tag pk/pocketbase:latest .
+          docker tag pk/pocketbase:${{ secrets.IMAGE_VERSION }} pk/pocketbase:latest
 
       - name: Test Docker image
         run: |
