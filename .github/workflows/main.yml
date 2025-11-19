@@ -34,7 +34,7 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker run --rm --name pocketbase -p 127.0.0.1:8910:8080 ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }}
+          docker run -itd --rm --name pocketbase -p 127.0.0.1:8910:8080 ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }}
           sh pb-test.sh
 
       # - name: Push Docker images
