@@ -2,15 +2,12 @@
 FROM alpine:latest
 
 # Set the PocketBase version as a build argument
-ARG PB_VERSION=0.19.0
+ARG PB_VERSION=0.33.0
 
 # Install necessary packages
 RUN apk add --no-cache \
     unzip \
-    ca-certificates \
-    curl \
-    # this is needed only if you want to use scp to copy later your pb_data locally
-    openssh
+    ca-certificates
 
 # Download and unzip PocketBase
 ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
@@ -24,12 +21,6 @@ RUN unzip /tmp/pb.zip -d /pb/
 
 # Expose the PocketBase server port
 EXPOSE 8080
-
-# Copy the pb-test script into the container
-COPY pb-test.sh /pb/pb-test.sh
-
-# Ensure the pb-test script is executable
-RUN chmod +x /pb/pb-test.sh
 
 # Set the entry point to start PocketBase
 CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]

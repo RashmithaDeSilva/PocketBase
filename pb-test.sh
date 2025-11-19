@@ -1,13 +1,10 @@
 #!/bin/sh
 
-# Start PocketBase in the background
-/pb/pocketbase serve --http=0.0.0.0:8080 &
-
 # Wait for PocketBase to start
-sleep 5
+sleep 10
 
 # Test if PocketBase is responding
-if curl -s http://localhost:8080/ > /dev/null; then
+if curl -s http://localhost:8910/ > /dev/null; then
     echo "PocketBase is running and responding to HTTP requests."
     exit 0
 else

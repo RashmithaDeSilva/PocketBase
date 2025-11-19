@@ -1,0 +1,27 @@
+services:
+  pocketbase:
+    image: rashmithadesilva/pocketbase:latest
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    container_name: pocketbase
+    ports:
+      - "127.0.0.1:8910:8080"
+    volumes:
+      - pb_data:/pb/pb_data          # persistent DB + files
+      - pb_migrations:/pb/pb_migrations:ro   # optional: read-only
+      - pb_hooks:/pb/pb_hooks:ro             # optional: read-only
+    networks:
+      - pb_net
+    restart: unless-stopped
+
+# Persistent named volumes
+volumes:
+  pb_data:
+  pb_migrations:
+  pb_hooks:
+
+# Custom isolated network
+networks:
+  pb_net:
+    driver: bridge
