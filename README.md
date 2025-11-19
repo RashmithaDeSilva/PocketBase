@@ -2,6 +2,13 @@
 
 This repository provides a ready-to-use setup for running PocketBase in Docker, with optional Docker Compose and Nginx reverse proxy configuration.
 
+Login with
+```sh
+    http://127.0.0.1:8090/_/ # superusers dashboard
+    http://127.0.0.1:8090/api/ # REST-ish API
+```
+In first time login you need to create `Super User` account for that git contaner loga `docker logs pocketbase` it wil show url for superuser register thisn create account and log.
+
 It includes:
 
 * Dockerfile — custom PocketBase image

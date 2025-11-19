@@ -8,11 +8,18 @@ services:
     ports:
       - "127.0.0.1:8910:8080"
     volumes:
+      # Persistent Docker volumes
       - pb_data:/pb/pb_data          # persistent DB + files
       - pb_migrations:/pb/pb_migrations:ro   # optional: read-only
       - pb_hooks:/pb/pb_hooks:ro             # optional: read-only
+      # ALSO sync to host file system (Uncomment this lines if you need)
+      # - ./pb_data:/pb/pb_data   # Sync pb data in host folder
+      # - ./pb_public:/pb/pb_public   # Sync public folder for show simple ui page on '127.0.0.1:8910'
+      # - ./pb_migrations:/pb/pb_migrations
+      # - ./pb_hooks:/pb/pb_hooks
     networks:
-      - pb_net
+      pb_net:
+        ipv4_address: 172.20.0.10
     restart: unless-stopped
 
 # Persistent named volumes
@@ -25,3 +32,6 @@ volumes:
 networks:
   pb_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
