@@ -1,15 +1,39 @@
-name: CI for Docker
+name: Auto Build PocketBase Docker Image
 
 on:
+  schedule:
+    - cron: "0 3 * * *"   # Check every day 3:00 AM
   workflow_dispatch:
-    inputs:
-      IMAGE_VERSION:
-        description: "Version for the Docker image"
-        required: true
-        type: string
 
 jobs:
-  build:
+  check_latest:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      should_build: ${{ steps.check_existing.outputs.should_build }}
+
+    steps:
+      - name: Get latest PocketBase release version
+        id: get_version
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/pocketbase/pocketbase/releases/latest | jq -r .tag_name)
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Check if Docker tag already exists
+        id: check_existing
+        run: |
+          TAG=${{ steps.get_version.outputs.version }}
+          RESULT=$(curl -s https://hub.docker.com/v2/repositories/${{ secrets.DOCKER_USERNAME }}/pocketbase/tags/$TAG)
+
+          if echo "$RESULT" | grep -q '"name"'; then
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
+
+  build_and_push:
+    needs: check_latest
+    if: needs.check_latest.outputs.should_build == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -26,18 +50,23 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }} .
-
-      - name: Tag Docker image with latest tag
         run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest
+          VERSION=${{ needs.check_latest.outputs.version }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/pocketbase:$VERSION .
+
+      - name: Tag Docker image with latest
+        run: |
+          VERSION=${{ needs.check_latest.outputs.version }}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/pocketbase:$VERSION ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest
 
       - name: Test Docker image
         run: |
-          docker run -itd --rm --name pocketbase -p 127.0.0.1:8910:8080 ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }}
+          VERSION=${{ needs.check_latest.outputs.version }}
+          docker run -itd --rm --name pbtest -p 127.0.0.1:8910:8080 ${{ secrets.DOCKER_USERNAME }}/pocketbase:$VERSION
           sh pb-test.sh
 
       - name: Push Docker images
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/pocketbase:${{ github.event.inputs.IMAGE_VERSION }}
+          VERSION=${{ needs.check_latest.outputs.version }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/pocketbase:$VERSION
           docker push ${{ secrets.DOCKER_USERNAME }}/pocketbase:latest
